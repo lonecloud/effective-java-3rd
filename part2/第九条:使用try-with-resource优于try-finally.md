@@ -100,3 +100,42 @@ static void copy(String src, String dst) throws IOException {
 }
 ```
 
+> Not only are the try-with-resources versions shorter and more readable than the originals, but they provide far better diagnostics. Consider the firstLineOfFile method. If exceptions are thrown by both the readLine call and the (invisible)
+> close, the latter exception is *suppressed* in favor of the former. In fact, multiple
+> exceptions may be suppressed in order to preserve the exception that you actually
+> want to see. These suppressed exceptions are not merely discarded; they are
+> printed in the stack trace with a notation saying that they were suppressed. You
+> can also access them programmatically with the getSuppressed method, which
+> was added to Throwable in Java 7.
+
+`try-with-resource`语法糖不仅比原始语法更短，更易读，而且它们提供了更好的调试功能。 考虑到在`firstLineOfFile`方法中，如果在调用的时候`readLine`和`close()`方法都出现了异常，后面的异常将会覆盖前面的异常。实际上我们可以通过控制后者那个异常来保证我们自己想要看到的异常能够正常的显示出来。这些被限制的异常不仅被丢弃，他们在打印堆栈信息的时候也会被其他的 标记。在Java7中我们可以通过`getSuppressed`访问close()方法中抛出的异常。
+
+> You can put catch clauses on try-with-resources statements, just as you can
+> on regular try-finally statements. This allows you to handle exceptions without
+> sullying your code with another layer of nesting. As a slightly contrived example,
+> here’s a version our firstLineOfFile method that does not throw exceptions, but
+> takes a default value to return if it can’t open the file or read from it:
+
+当然你可以在使用`try-with-resource`时候使用catch去捕获异常。我们可以在方法体里面进行处理异常，不让改异常不向上抛出。下面是`firstLineOfFile`的另一个例子，它不会抛出异常，当无法打开文件的时候，他将返回默认值。
+
+```java
+// try-with-resources with a catch clause
+   static String firstLineOfFile(String path, String defaultVal) {
+       try (BufferedReader br = new BufferedReader(
+               new FileReader(path))) {
+           return br.readLine();
+       } catch (IOException e) {
+           return defaultVal;
+       } 
+   }
+
+```
+
+> The lesson is clear: Always use try-with-resources in preference to try-
+> finally when working with resources that must be closed. The resulting code is
+> shorter and clearer, and the exceptions that it generates are more useful. The try-
+> with-resources statement makes it easy to write correct code using resources that
+> must be closed, which was practically impossible using try-finally.
+
+总结：当该资源必须需要手动关闭的时候使用`try-with-resources`会比`try-
+finally`更好，编写出来的代码更加精简，更加清晰，并且其生成的异常也会更有用。这个`try-with-resources`语法糖可以让我们比使用`try-finally`更容易编写正确关闭资源的代码。
